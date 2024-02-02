@@ -12,6 +12,8 @@ import java.nio.channels.spi.SelectorProvider;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 
+import ricm.nio.babystep2.ReaderAutomata;
+
 /**
  * NIO elementary server 
  * Implements an overly simplified echo server system
@@ -21,7 +23,7 @@ import java.util.Iterator;
 
 public class NioServer {
 	public static final int DEFAULT_SERVER_PORT = 8888;
-	private static final int INBUFFER_SZ = 2048;
+	private static final int INBUFFER_SZ = 2048*2048;
 
 	// The server channel to accept connections from clients
 	private ServerSocketChannel ssc;
@@ -35,6 +37,9 @@ public class NioServer {
 	// Buffers for outgoing messages & incoming messages
 	ByteBuffer outBuffer;
 	ByteBuffer inBuffer;
+	
+	//Automata
+	ReaderAutomata readerAutomata;
 
 	/**
 	 * NIO server initialization
@@ -107,6 +112,9 @@ public class NioServer {
 		// get a client channel as result
 		sc = ssc.accept();
 		sc.configureBlocking(false);
+		
+		// Create the automata
+		readerAutomata = new ReaderAutomata(sc);
 
 		// register a READ interest on sc to receive the message sent by the client
 		sc.register(selector, SelectionKey.OP_READ);

@@ -13,6 +13,8 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.Iterator;
 
+import ricm.nio.babystep2.ReaderAutomata;
+
 /**
  * NIO elementary client 
  * Implements an overly simplified echo client system
@@ -35,6 +37,9 @@ public class NioClient {
 	// Buffers for outgoing messages & incoming messages
 	ByteBuffer outBuffer;
 	ByteBuffer inBuffer;
+
+	//Automata
+	ReaderAutomata readerAutomata;
 
 	// The message to send to the server
 	byte[] first;  
@@ -70,6 +75,9 @@ public class NioClient {
 		InetAddress addr;
 		addr = InetAddress.getByName(serverName);
 		sc.connect(new InetSocketAddress(addr, port));
+
+		// Create the automata
+		readerAutomata = new ReaderAutomata(sc);
 	}
 
 	/**
