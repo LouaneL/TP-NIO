@@ -13,7 +13,9 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.Iterator;
 
+import ricm.nio.babystep2.Automata;
 import ricm.nio.babystep2.ReaderAutomata;
+import ricm.nio.babystep2.WriterAutomata;
 
 /**
  * NIO elementary client 
@@ -40,6 +42,7 @@ public class NioClient {
 
 	//Automata
 	ReaderAutomata readerAutomata;
+	WriterAutomata writerAutomata;
 
 	// The message to send to the server
 	byte[] first;  
@@ -78,6 +81,7 @@ public class NioClient {
 
 		// Create the automata
 		readerAutomata = new ReaderAutomata(sc);
+		writerAutomata = new WriterAutomata(sc);
 	}
 
 	/**
@@ -128,11 +132,11 @@ public class NioClient {
 		assert (sc == key.channel());
 
 		sc.finishConnect();
-		skey.interestOps(SelectionKey.OP_READ);
+		skey.interestOps(SelectionKey.OP_WRITE);
 
 		// once connected, send a message to the server
 		digest = md5(first);
-		send(first, 0, first.length);
+		writerAutomata.sendMsg(first);
 	}
 
 	/**
@@ -144,36 +148,24 @@ public class NioClient {
 		assert (this.skey == key);
 		assert (sc == key.channel());
 
-		// Let's read the message
-		inBuffer = ByteBuffer.allocate(INBUF_SZ);
-		int n = sc.read(inBuffer);
-		if (n == -1) {
-			key.cancel();  // communication with server is broken
-			sc.close(); 
-			return;
-		}
-
-		byte[] data = new byte[inBuffer.position()];
-		inBuffer.rewind();
-		inBuffer.get(data);
-
-		// Let's make sure we read the message we sent to the server
-		byte[] md5 = md5(data);
-		if (!md5check(digest, md5)) {
-			System.out.println("Checksum Error!");
-			return;
-		}
+		readerAutomata.handleRead();
+		
+		if (!readerAutomata.isCompleted()) return;
+		
+		byte[] data = readerAutomata.getData();
 
 		// Let's print the received message, assuming it is a UTF-8 string
 		// since it is the format of the first message sent to the server.
 		String msg = new String(data, Charset.forName("UTF-8"));
 		System.out.println("NioClient received msg["+nloops+"]: " + msg);
 
-		// send back the received message
-		send(data, 0, data.length);
-		
-		if (nloops++ > 500)
+		if (nloops++ > 200)
 			System.exit(0);
+		
+		// send back the received message
+		writerAutomata.sendMsg(data);
+		key.interestOps(SelectionKey.OP_WRITE);
+
 	}
 
 	/**
@@ -184,8 +176,9 @@ public class NioClient {
 	private void handleWrite(SelectionKey key) throws IOException {
 		assert (this.skey == key);
 		assert (sc == key.channel());
-		// write the output buffer to the socket channel
-		sc.write(outBuffer);
+				
+		writerAutomata.handleWrite();
+		if(writerAutomata.isCompleted()) return;
 		// remove the write interest & set READ interest
 		key.interestOps(SelectionKey.OP_READ);
 	}
@@ -198,7 +191,7 @@ public class NioClient {
 	public void send(byte[] data, int offset, int count) {
 		// this is not optimized, we should try to reuse the same ByteBuffer
 		outBuffer = ByteBuffer.wrap(data, offset, count);
-
+		
 		// register a WRITE interest
 		skey.interestOps(SelectionKey.OP_WRITE);
 	}

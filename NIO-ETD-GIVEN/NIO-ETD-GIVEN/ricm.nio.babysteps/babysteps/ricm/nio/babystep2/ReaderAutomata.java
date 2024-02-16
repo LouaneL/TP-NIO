@@ -11,11 +11,16 @@ public class ReaderAutomata {
 	ByteBuffer lengthBB;
 	ByteBuffer msg;
 	SocketChannel sc;
+	byte[] data;
+	boolean completed;
+	
+	
 
 	public ReaderAutomata(SocketChannel sc) {
 		this.sc = sc;
 		lengthBB = ByteBuffer.allocate(4);
 		msg = null;
+		completed = false;
 	}
 
 	/**
@@ -24,7 +29,7 @@ public class ReaderAutomata {
 	 * @param sc
 	 * @throws IOException 
 	 */
-	void handleRead(SocketChannel sc) throws IOException{
+	public void handleRead() throws IOException{
 		switch (state) {
 		case READING_LENGTH: {
 			// <continue reading the length>
@@ -32,6 +37,7 @@ public class ReaderAutomata {
 			// allocate a buffer to read the msg and go to READING-MSG state>
 			sc.read(lengthBB);
 			if (lengthBB.remaining() == 0) {
+				lengthBB.rewind();
 				int length = lengthBB.getInt();
 				msg = ByteBuffer.allocate(length);
 				state = State.READING_MSG;
@@ -45,9 +51,10 @@ public class ReaderAutomata {
 			sc.read(msg);
 			if (msg.remaining() == 0) {
 				state = State.READING_LENGTH;
-				byte[] data = new byte[msg.position()];
+				data = new byte[msg.position()];
 				msg.rewind();
 				msg.get(data);
+				completed = true;
 			}
 			break;
 		}
@@ -55,4 +62,18 @@ public class ReaderAutomata {
 			throw new IllegalArgumentException("Unexpected value: " + state);
 		}
 	}
+	
+	public boolean isCompleted() {
+		return completed;
+	}
+	
+	public byte[] getData() {
+		completed = false;
+		return data;
+	}
+	
+	public SocketChannel getSc() {
+		return sc;
+	}
+	
 }
