@@ -42,4 +42,4 @@ public class Channel implements IChannel {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	}
+}

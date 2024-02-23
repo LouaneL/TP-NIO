@@ -13,6 +13,9 @@ import java.util.Iterator;
 import ricm.channels.IBroker;
 import ricm.channels.IBrokerListener;
 import ricm.channels.IChannel;
+import ricm.nio.babystep2.Automata;
+import ricm.nio.babystep2.ReaderAutomata;
+import ricm.nio.babystep2.WriterAutomata;
 
 /**
  * Broker implementation
@@ -48,10 +51,13 @@ public class Broker implements IBroker {
 	public boolean connect(String host, int port) {
 		
 		try {
+			// create a non-blocking socket channel
 			sc = SocketChannel.open();
 			sc.configureBlocking(false);
+
+			// register a CONNECT interest for channel sc 
 			skey = sc.register(selector, SelectionKey.OP_CONNECT);
-			
+
 			// request to connect to the server
 			InetAddress addr;
 			addr = InetAddress.getByName(host);
@@ -98,6 +104,13 @@ public class Broker implements IBroker {
 		sc.finishConnect();
 		
 		IChannel c = new Channel(sc);
+		
+		// register a READ interest on sc to receive the message sent by the client
+		SelectionKey keyclient = sc.register(selector, SelectionKey.OP_READ);
+		
+		keyclient.attach(c);
+
+		
 		l.connected(c);
 	}
 	
@@ -116,7 +129,15 @@ public class Broker implements IBroker {
 		sc = ssc.accept();
 		sc.configureBlocking(false);
 		
+		
+		// register a READ interest on sc to receive the message sent by the client
+		SelectionKey keyserver = sc.register(selector, SelectionKey.OP_READ);
+		
+		// Create the Channel
 		IChannel c = new Channel(sc);
+
+		keyserver.attach(c);
+		
 		l.accepted(c);
 	}
 
@@ -138,6 +159,14 @@ public class Broker implements IBroker {
 					handleAccept(key);
 				if (key.isValid() && key.isConnectable())  // connect event
 					handleConnect(key);
+				if (key.isValid() && key.isReadable()) {
+					Channel channel = (Channel) key.attachment();
+					channel.handleRead();
+				}
+				if (key.isValid() && key.isWritable()) {
+					Channel channel = (Channel) key.attachment();
+					channel.handleWrite();
+				}
 			}
 		}
 	}
