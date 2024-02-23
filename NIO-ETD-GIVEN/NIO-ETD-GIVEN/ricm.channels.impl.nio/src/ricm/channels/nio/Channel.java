@@ -1,10 +1,18 @@
 package ricm.channels.nio;
 
+import java.nio.channels.SocketChannel;
+
 import ricm.channels.IChannel;
 import ricm.channels.IChannelListener;
 
 public class Channel implements IChannel {
 
+	SocketChannel sc;
+	
+	public Channel(SocketChannel sc ) {
+		this.sc = sc;
+	}
+	
 	@Override
 	public void setListener(IChannelListener l) {
 		// TODO Auto-generated method stub
@@ -34,6 +42,4 @@ public class Channel implements IChannel {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	// to complete
-}
+	}
