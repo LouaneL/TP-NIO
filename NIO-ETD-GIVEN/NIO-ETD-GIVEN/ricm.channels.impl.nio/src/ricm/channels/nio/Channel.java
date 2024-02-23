@@ -43,10 +43,6 @@ public class Channel implements IChannel {
 	public void send(byte[] bytes) {
 		// TODO Auto-generated method stub
 		writer.sendMsg(bytes);
-		try {
-//			writer.handleWrite();
-		} catch (IOException e) {
-		}
 		
 	}
 
@@ -58,5 +54,15 @@ public class Channel implements IChannel {
 	@Override
 	public boolean closed() {
 		return isclosed;
+	}
+
+	void handleRead() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	void handleWrite() {
+		// TODO Auto-generated method stub
+		
 	}
 }
