@@ -8,9 +8,13 @@ import ricm.channels.IChannelListener;
 public class Channel implements IChannel {
 
 	SocketChannel sc;
+	Writer writer;
+	Reader reader;
 	
 	public Channel(SocketChannel sc ) {
 		this.sc = sc;
+		writer = new Writer(sc, this);
+		reader = new Reader(sc, this);
 	}
 	
 	@Override
