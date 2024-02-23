@@ -2,6 +2,7 @@ package ricm.channels.nio;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.LinkedList;
 
@@ -16,15 +17,12 @@ public class Writer {
 	ByteBuffer msg;
 	LinkedList<byte[]> pendingMsgs;
 	SocketChannel sc;
-	boolean completed;
 	Channel c;
-
-	public Writer(SocketChannel sc, Channel c) {
-		this.sc = sc;
-		lengthBB = ByteBuffer.allocate(4);
-		completed = false;
-		pendingMsgs = new LinkedList<byte[]>();
+	
+	public Writer(Channel c) {
 		this.c = c;
+		lengthBB = ByteBuffer.allocate(4);
+		pendingMsgs = new LinkedList<byte[]>();
 	}
 
 	public void sendMsg(byte[] msg) {
@@ -37,7 +35,7 @@ public class Writer {
 		pendingMsgs.add(msg);
 	}
 
-	void handleWrite() throws IOException {
+	void handleWrite(SocketChannel sc) throws IOException {
 		switch (state) {
 		case WRITING_IDLE:
 			break;
@@ -60,23 +58,12 @@ public class Writer {
 					msg = ByteBuffer.wrap(pendingMsgs.getFirst());
 				} else {
 					state = State.WRITING_IDLE;
+					c.myKey.interestOps(SelectionKey.OP_READ);
 				}
 			}
 		default:
 			break;
 		}
-	}
-
-	public SocketChannel getSc() {
-		return sc;
-	}
-
-	public boolean isCompleted() {
-		if (completed) {
-			completed = false;
-			return true;
-		}
-		return completed;
 	}
 
 }

@@ -103,11 +103,10 @@ public class Broker implements IBroker {
 
 		sc.finishConnect();
 		
-		IChannel c = new Channel(sc);
 		
 		// register a READ interest on sc to receive the message sent by the client
 		SelectionKey keyclient = sc.register(selector, SelectionKey.OP_READ);
-		
+		IChannel c = new Channel(sc, keyclient);
 		keyclient.attach(c);
 
 		
@@ -134,7 +133,7 @@ public class Broker implements IBroker {
 		SelectionKey keyserver = sc.register(selector, SelectionKey.OP_READ);
 		
 		// Create the Channel
-		IChannel c = new Channel(sc);
+		IChannel c = new Channel(sc,keyserver);
 
 		keyserver.attach(c);
 		
@@ -143,7 +142,7 @@ public class Broker implements IBroker {
 
 
 	public void run() throws IOException {
-		System.out.println("Broker running");
+//		System.out.println("Broker running");
 		while (true) {
 			// wait for some events
 			selector.select();
@@ -161,11 +160,11 @@ public class Broker implements IBroker {
 					handleConnect(key);
 				if (key.isValid() && key.isReadable()) {
 					Channel channel = (Channel) key.attachment();
-					channel.handleRead();
+					channel.handleRead(key);
 				}
 				if (key.isValid() && key.isWritable()) {
 					Channel channel = (Channel) key.attachment();
-					channel.handleWrite();
+					channel.handleWrite(key);
 				}
 			}
 		}

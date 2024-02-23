@@ -13,16 +13,12 @@ public class Reader {
 	State state = State.READING_LENGTH;
 	ByteBuffer lengthBB;
 	ByteBuffer msg;
-	SocketChannel sc;
 	byte[] data;
-	boolean completed;
 	Channel c;
 
-	public Reader(SocketChannel sc, Channel c) {
-		this.sc = sc;
+	public Reader(Channel c) {
 		lengthBB = ByteBuffer.allocate(4);
 		msg = null;
-		completed = false;
 		this.c = c;
 	}
 
@@ -33,7 +29,8 @@ public class Reader {
 	 * @param sc
 	 * @throws IOException
 	 */
-	void handleRead() throws IOException {
+	void handleRead(SocketChannel sc) throws IOException {
+		System.out.println("read");
 		switch (state) {
 		case READING_LENGTH: {
 			// <continue reading the length>
@@ -58,26 +55,13 @@ public class Reader {
 				data = new byte[msg.position()];
 				msg.rewind();
 				msg.get(data);
-				completed = true;
+				c.listener.received(c, data);
 			}
 			break;
 		}
 		default:
 			throw new IllegalArgumentException("Unexpected value: " + state);
 		}
-	}
-
-	public boolean isCompleted() {
-		return completed;
-	}
-
-	public byte[] getData() {
-		completed = false;
-		return data;
-	}
-
-	public SocketChannel getSc() {
-		return sc;
 	}
 
 }
