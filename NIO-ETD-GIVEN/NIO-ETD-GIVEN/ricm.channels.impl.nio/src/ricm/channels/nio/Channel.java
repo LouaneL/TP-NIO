@@ -1,26 +1,36 @@
 package ricm.channels.nio;
 
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 import ricm.channels.IChannel;
 import ricm.channels.IChannelListener;
 
+
+/*
+ * A AJOUTER
+ * Une key au channel pour pouvoir send
+ * Un selector
+ * handleRead() et handleWrite()
+ */
 public class Channel implements IChannel {
 
 	SocketChannel sc;
 	Writer writer;
 	Reader reader;
-	
-	public Channel(SocketChannel sc ) {
+	IChannelListener listener;
+	boolean isclosed;
+
+	public Channel(SocketChannel sc) {
 		this.sc = sc;
 		writer = new Writer(sc, this);
 		reader = new Reader(sc, this);
 	}
-	
+
 	@Override
 	public void setListener(IChannelListener l) {
 		// TODO Auto-generated method stub
-		
+		listener = l;
 	}
 
 	@Override
@@ -32,18 +42,21 @@ public class Channel implements IChannel {
 	@Override
 	public void send(byte[] bytes) {
 		// TODO Auto-generated method stub
+		writer.sendMsg(bytes);
+		try {
+//			writer.handleWrite();
+		} catch (IOException e) {
+		}
 		
 	}
 
 	@Override
 	public void close() {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public boolean closed() {
-		// TODO Auto-generated method stub
-		return false;
+		return isclosed;
 	}
-	}
+}

@@ -37,7 +37,7 @@ public class Writer {
 		pendingMsgs.add(msg);
 	}
 
-	public void handleWrite() throws IOException {
+	void handleWrite() throws IOException {
 		switch (state) {
 		case WRITING_IDLE:
 			break;

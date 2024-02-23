@@ -5,6 +5,11 @@ import ricm.channels.IBrokerListener;
 import ricm.channels.IChannel;
 import ricm.channels.IChannelListener;
 
+
+/*
+ * Quand ping reçoit un message le listener l'appelle
+ * 
+ */
 public class Ping implements IBrokerListener, IChannelListener{
 	IBroker b;
 	

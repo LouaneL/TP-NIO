@@ -33,7 +33,7 @@ public class Reader {
 	 * @param sc
 	 * @throws IOException
 	 */
-	public void handleRead() throws IOException {
+	void handleRead() throws IOException {
 		switch (state) {
 		case READING_LENGTH: {
 			// <continue reading the length>

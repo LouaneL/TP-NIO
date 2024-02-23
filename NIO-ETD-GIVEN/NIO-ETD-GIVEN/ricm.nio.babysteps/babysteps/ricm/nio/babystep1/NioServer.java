@@ -177,7 +177,7 @@ public class NioServer {
 
 	/**
 	 *  Request to send data
-	 * 
+	 * key
 	 * @param the key of the channel on which data that should be sent
 	 * @param the data that should be sent
 	 */
