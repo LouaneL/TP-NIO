@@ -6,31 +6,34 @@ import java.nio.channels.SocketChannel;
 
 public class Reader {
 
+	enum State {
+		READING_LENGTH, READING_MSG
+	};
 
-	enum State {READING_LENGTH, READING_MSG} ;
-	State state = State.READING_LENGTH ;
+	State state = State.READING_LENGTH;
 	ByteBuffer lengthBB;
 	ByteBuffer msg;
 	SocketChannel sc;
 	byte[] data;
 	boolean completed;
-	
-	
+	Channel c;
 
-	public Reader(SocketChannel sc) {
+	public Reader(SocketChannel sc, Channel c) {
 		this.sc = sc;
 		lengthBB = ByteBuffer.allocate(4);
 		msg = null;
 		completed = false;
+		this.c = c;
 	}
 
 	/**
-	 * 	<read the length>
-		<read the message knowing that it is composed of length bytes>
+	 * <read the length> <read the message knowing that it is composed of length
+	 * bytes>
+	 * 
 	 * @param sc
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	public void handleRead() throws IOException{
+	public void handleRead() throws IOException {
 		switch (state) {
 		case READING_LENGTH: {
 			// <continue reading the length>
@@ -44,7 +47,7 @@ public class Reader {
 				state = State.READING_MSG;
 				lengthBB.rewind();
 			}
-		} 
+		}
 		case READING_MSG: {
 			// <continue reading the message>
 			// <if all bytes composing the msg have been read,
@@ -63,19 +66,18 @@ public class Reader {
 			throw new IllegalArgumentException("Unexpected value: " + state);
 		}
 	}
-	
+
 	public boolean isCompleted() {
 		return completed;
 	}
-	
+
 	public byte[] getData() {
 		completed = false;
 		return data;
 	}
-	
+
 	public SocketChannel getSc() {
 		return sc;
 	}
-	
-}
 
+}
